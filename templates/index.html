@@ -2,82 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuildAI Pro | Construction Planning</title>
+    <title>BuildAI Pro | Construction Planner</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; margin: 0; }
-        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.2rem; text-align: center; font-weight: bold; font-size: 1.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .container { display: flex; gap: 20px; padding: 40px; max-width: 1200px; margin: auto; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); flex: 1; transition: transform 0.3s; }
-        .card:hover { transform: translateY(-5px); }
-        h2 { color: #764ba2; border-bottom: 2px solid #eef2ff; padding-bottom: 12px; margin-top: 0; }
-        .input-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 15px; background: #764ba2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
-        button:hover { background: #667eea; }
-        #results { margin-top: 20px; padding: 20px; background: #f8faff; border-left: 5px solid #764ba2; border-radius: 4px; display: none; }
-        .res-item { margin-bottom: 10px; font-size: 1.1rem; }
-        hr { border: 0; height: 1px; background: #eee; margin: 20px 0; }
-        #placeholder { color: #888; text-align: center; margin-top: 50px; font-style: italic; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7fa; margin: 0; color: #333; }
+        .navbar { background: #764ba2; color: white; padding: 1.2rem 5%; font-size: 1.5rem; font-weight: bold; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .results-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; display: none; margin-top: 25px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { color: #764ba2; font-size: 1.1rem; border-left: 4px solid #764ba2; padding-left: 10px; margin-top: 0; }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #764ba2; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .stat-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .badge { background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
+        #ai-loading-box { display: none; margin-top: 15px; padding: 15px; background: #fdf2ff; border-radius: 8px; border-left: 4px solid #764ba2; }
     </style>
 </head>
 <body>
-    <div class="navbar">BuildAI Pro</div>
+    <div class="navbar">                         🏗️ BuildAI Pro <span style="font-size:0.8rem; font-weight:normal; margin-left:10px;">by Pavan</span></div>
     <div class="container">
-        <div class="card">
-            <h2>Project Details</h2>
-            <div class="input-group">
-                <label>Built-up Area (Sq. Yards)</label>
-                <input type="number" id="area" placeholder="e.g. 1000">
+        <div class="main-grid">
+            <div class="card">
+                <h2>📋 Project Details</h2>
+                <div class="input-row">
+                    <div><label>Area (Sq. Yards) *</label><input type="number" id="area" value="1000"></div>
+                    <div><label>Floors (e.g. G+2) *</label><input type="text" id="floors" value="G+2"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>Daily Wage (₹) *</label><input type="number" id="wage" value="500"></div>
+                    <div><label>Cost/Sq Yard (₹) *</label><input type="number" id="unit_cost" value="1500"></div>
+                </div>
+                <button onclick="calculate()">🚀 Generate Analysis</button>
+                <div id="ai-loading-box">
+                    <strong>AI Strategic Analysis:</strong><br>
+                    <span id="ai-content" style="font-style:italic; color:#764ba2;">AI is analyzing structural requirements...</span>
+                </div>
             </div>
-            <div class="input-group">
-                <label>Floors (e.g. G+2, G+3)</label>
-                <input type="text" id="floors" placeholder="e.g. G+2">
+
+            <div class="card">
+                <h2>👤 Workers & Labor</h2>
+                <div class="stat-line"><span>Total Man-Days</span><strong id="res-days">0</strong></div>
+                <div style="margin-top: 10px;">
+                    <div class="stat-line"><span>👷 Masons</span><span class="badge">2</span></div>
+                    <div class="stat-line"><span>🤝 Helpers</span><span class="badge">3</span></div>
+                    <div class="stat-line"><span>⚙️ Steel Workers</span><span class="badge">1</span></div>
+                    <div class="stat-line"><span>🔨 Carpenters</span><span class="badge">1</span></div>
+                    <div class="stat-line"><span>📋 Supervisors</span><span class="badge">1</span></div>
+                </div>
             </div>
-            <button onclick="calculate()">Calculate Project</button>
         </div>
 
-        <div class="card">
-            <h2>Results & AI Insight</h2>
-            <div id="results">
-                <div class="res-item"><strong>Steel Required:</strong> <span id="res-steel" style="color:#764ba2"></span></div>
-                <div class="res-item"><strong>Cement Bags:</strong> <span id="res-cement" style="color:#764ba2"></span></div>
-                <hr>
-                <p><strong>AI Construction Tip:</strong></p>
-                <p id="res-ai" style="font-style: italic; color: #555; line-height: 1.5;"></p>
+        <div id="results-row" class="results-row">
+            <div class="card">
+                <h2>💰 Cost Analysis</h2>
+                <div class="stat-line"><span>Material Cost</span><strong id="c-material">₹0</strong></div>
+                <div class="stat-line"><span>Labor Cost</span><strong id="c-labor">₹0</strong></div>
+                <div class="stat-line"><span>Overhead (10%)</span><strong id="c-overhead">₹0</strong></div>
+                <div class="stat-line" style="border-top:2px solid #764ba2; margin-top:5px;"><span>Total Estimate</span><strong id="c-total">₹0</strong></div>
             </div>
-            <p id="placeholder">Enter project details and click calculate to generate your AI-powered plan.</p>
+            <div class="card">
+                <h2>🏗️ Materials Required</h2>
+                <div class="stat-line"><span>Steel Required</span><strong id="m-steel">0</strong></div>
+                <div class="stat-line"><span>Cement Bags</span><strong id="m-cement">0</strong></div>
+                <div class="stat-line"><span>Sand Required</span><strong id="m-sand">0</strong></div>
+                <div class="stat-line"><span>Water Supply</span><strong id="m-water">0</strong></div>
+            </div>
         </div>
     </div>
 
     <script>
         async function calculate() {
-    const area = document.getElementById('area').value;
-    const floors = document.getElementById('floors').value;
-    if(!area) return alert("Please enter the area!");
+            document.getElementById('ai-loading-box').style.display = 'block';
+            document.getElementById('ai-content').innerText = "AI is generating strategic insights...";
 
-    // 1. Show the result box and a "loading" state for AI
-    document.getElementById('placeholder').style.display = 'none';
-    document.getElementById('results').style.display = 'block';
-    document.getElementById('res-ai').innerText = "AI is thinking...";
+            const response = await fetch('/api/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    area: document.getElementById('area').value, 
+                    floors: document.getElementById('floors').value,
+                    wage: document.getElementById('wage').value,
+                    unit_cost: document.getElementById('unit_cost').value
+                })
+            });
+            
+            const data = await response.json();
+            document.getElementById('results-row').style.display = 'grid';
+            
+            document.getElementById('c-material').innerText = data.material_cost;
+            document.getElementById('c-labor').innerText = data.labor_cost;
+            document.getElementById('c-overhead').innerText = data.overhead;
+            document.getElementById('c-total').innerText = data.total_estimate;
+            document.getElementById('m-steel').innerText = data.steel;
+            document.getElementById('m-cement').innerText = data.cement;
+            document.getElementById('m-sand').innerText = data.sand;
+            document.getElementById('m-water').innerText = data.water;
+            document.getElementById('res-days').innerText = data.days;
+            
+            document.getElementById('ai-content').style.fontStyle = 'normal';
+            document.getElementById('ai-content').innerText = data.ai_insight;
 
-    // 2. Fetch data from backend
-    const response = await fetch('/api/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ built_up_area: area, floors: floors })
-    });
-    
-    const data = await response.json();
-
-    // 3. Update the numbers IMMEDIATELY (these don't need AI)
-    document.getElementById('res-steel').innerText = data.steel;
-    document.getElementById('res-cement').innerText = data.cement;
-
-    // 4. Update the AI tip once it's done
-    document.getElementById('res-ai').innerText = data.ai_insight;
-}
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>

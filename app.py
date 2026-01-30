@@ -1,17 +1,16 @@
 from flask import Flask, render_template, request, jsonify
 import math
-import ollama  # Connects to your local AI [cite: 53]
+import ollama
 
 app = Flask(__name__)
 
-# Constants based on your project thumb rules [cite: 221-245]
+# Realistic Residential Construction Standards
 CONSTRUCTION_RATES = {
-    "STEEL_PER_SQ_YARD": 3.5,  # kg per sq yard [cite: 239]
-    "CEMENT_PER_SQ_YARD": 0.4, # bags per sq yard [cite: 240]
-    "SAND_PER_SQ_YARD": 0.6,   # tons per sq yard [cite: 242]
-    "WATER_PER_SQ_YARD": 500,  # liters per sq yard [cite: 251]
-    "STEEL_RATE": 60000,       # INR per ton [cite: 233]
-    "CEMENT_RATE": 420         # INR per bag [cite: 234]
+    "STEEL_PER_SQ_YARD": 4.0,   
+    "CEMENT_PER_SQ_YARD": 0.5,  
+    "SAND_PER_SQ_YARD": 0.06,   
+    "WATER_PER_SQ_YARD": 150,   
+    "LABOR_FACTOR": 0.504       
 }
 
 @app.route("/")
@@ -21,33 +20,55 @@ def index():
 @app.route("/api/calculate", methods=["POST"])
 def calculate():
     data = request.json
-    area = float(data.get("built_up_area", 0))
-    floors = data.get("floors", "G+0")
+    area = float(data.get("area", 1000))
+    floors_str = data.get("floors", "G+2")
+    daily_wage = float(data.get("wage", 500))
+    unit_cost = float(data.get("unit_cost", 1500))
     
-    # Material Math [cite: 95, 239-245]
-    steel = (area * CONSTRUCTION_RATES["STEEL_PER_SQ_YARD"]) / 1000
-    cement = area * CONSTRUCTION_RATES["CEMENT_PER_SQ_YARD"]
+    try:
+        num_floors = int(floors_str.lower().split('+')[-1]) + 1
+    except:
+        num_floors = 1
+
+    # 1. Resource Logic
+    steel = (CONSTRUCTION_RATES["STEEL_PER_SQ_YARD"] * area * num_floors) / 1000
+    cement = CONSTRUCTION_RATES["CEMENT_PER_SQ_YARD"] * area * num_floors
+    sand = CONSTRUCTION_RATES["SAND_PER_SQ_YARD"] * area * num_floors
+    water = CONSTRUCTION_RATES["WATER_PER_SQ_YARD"] * area * num_floors
     
-    # Optimized AI Prompt for maximum speed 
+    # 2. Financial Logic
+    material_cost = area * unit_cost * num_floors
+    total_labor_days = int(area * CONSTRUCTION_RATES["LABOR_FACTOR"])
+    labor_cost = total_labor_days * daily_wage
+    overhead = (material_cost + labor_cost) * 0.10
+    total_estimate = material_cost + labor_cost + overhead
+
+    # 3. AI Strategic Tip
     try:
         response = ollama.chat(
             model='granite3.3:2b', 
             messages=[{
                 'role': 'user', 
-                'content': f"As a construction expert, give a 2-sentence planning tip for a {floors} building of {area} sq yards."
+                'content': f"Provide two short paragraphs of construction advice for a {floors_str} building with a budget of ₹{total_estimate:,.0f}."
             }],
-            options={'num_predict': 150} # Limit output tokens for speed 
+            options={'num_predict': 512} 
         )
         ai_tip = response['message']['content']
-    except Exception as e:
-        ai_tip = "AI is currently offline. Ensure Ollama is running 'granite3.3:2b'!"
+    except:
+        ai_tip = "AI Strategic Insight Module Offline."
 
     return jsonify({
         "steel": f"{round(steel, 2)} tons",
         "cement": f"{math.ceil(cement)} bags",
+        "sand": f"{round(sand, 2)} tons",
+        "water": f"{water:,.0f} L",
+        "labor_cost": f"₹{labor_cost:,.0f}",
+        "material_cost": f"₹{material_cost:,.0f}",
+        "overhead": f"₹{overhead:,.0f}",
+        "total_estimate": f"₹{total_estimate:,.0f}",
+        "days": total_labor_days,
         "ai_insight": ai_tip
     })
 
 if __name__ == "__main__":
-    # Running on local port 5000 [cite: 312, 443]
     app.run(debug=True, port=5000)
