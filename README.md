@@ -1,6 +1,6 @@
 # BuildAI Pro: Intelligent Construction Planning System
 
-BuildAI Pro is a project planning assistant that combines advanced calculation algorithms with the **IBM Granite 3.3 2B** AI model to provide instant, data-driven construction insights[cite: 8, 736].
+BuildAI Pro is a project planning assistant that combines advanced calculation algorithms with the **IBM Granite 3.3 2B** AI model to provide instant, data-driven construction insights.
 
 ## 🚀 Features
 * **Material Estimation:** Instant calculations for Steel, Cement, Sand, and Water based on area and floors.
